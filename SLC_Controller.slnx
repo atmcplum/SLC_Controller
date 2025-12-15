@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="SLC_Controller/SLC_Controller.csproj" Id="e76f19c7-5275-4cd7-9613-e26c0c4bd325">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>
