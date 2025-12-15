@@ -93,14 +93,14 @@ namespace SLC_Controller {
             if (mode == "Pulse") {
                 imaVis = wusVis = dusVis = triggerVis = true;
 
-                if (string.IsNullOrWhiteSpace(tbIma.Text)) tbIma.Text = "1000";
+                if (string.IsNullOrWhiteSpace(tbIma.Text)) tbIma.Text = "500";
                 if (string.IsNullOrWhiteSpace(tbWus.Text)) tbWus.Text = "400000";
                 if (string.IsNullOrWhiteSpace(tbDus.Text)) tbDus.Text = "0";
             }
             else if (mode == "Continuous") {
                 imaVis = triggerVis = true;
 
-                if (string.IsNullOrWhiteSpace(tbIma.Text)) tbIma.Text = "1000";
+                if (string.IsNullOrWhiteSpace(tbIma.Text)) tbIma.Text = "500";
             }
 
             SetTbState(tbIma, imaVis);
