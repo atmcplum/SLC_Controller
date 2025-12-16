@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System; // 기본 시스템 기능
+using System.Collections.Generic; // 제네릭 컬렉션 타입
+using System.Drawing; // 색상 등 그래픽 타입
+using System.Linq; // LINQ 확장
+using System.Text; // 텍스트 유틸
+using System.Threading.Tasks; // 비동기 지원
 
 namespace SLC_Controller {
     //TODO: Declare global variables and settings here as static
-    internal static partial class Global {
+    internal static partial class Global { // 전역 상수 및 초기화/종료용 클래스
         //Setting files
         // Directory structure:
         // Application executable directory\
@@ -45,9 +45,9 @@ namespace SLC_Controller {
         ////General settings
         //public static FormMain MainForm = null;
 
-        public const int ID_LH = 0;
-        public const int ID_RH = 1;
-        public const int ID_MID = 2;
+        public const int ID_LH = 0; // Left Hand ID
+        public const int ID_RH = 1; // Right Hand ID
+        public const int ID_MID = 2; // Middle ID
 
         //====================================================================================================
         #region MODEL
@@ -147,8 +147,8 @@ namespace SLC_Controller {
         #endregion
 
 
-        public static void InitGlobalSetting() {
-            //First we need to load previous setting
+        public static void InitGlobalSetting() { // 저장된 전역 설정을 로드할 자리
+            //First we need to load previous setting // 실제 로직 필요 시 구현
         }
         //Init app
         //        public static void Init()
@@ -181,25 +181,26 @@ namespace SLC_Controller {
         //        }
 
         //Terminate hardware
-        public static void Terminate() {
+        public static void Terminate() { // 하드웨어 종료 처리
 #if USE_CAMERA
-            TerminateCameras();
-            TerminateLights();
+            TerminateCameras(); // 카메라 종료
+            TerminateLights(); // 조명 종료
 #endif
 
 #if USE_SCANNER
-            TerminateScanners();
+            TerminateScanners(); // 스캐너 종료
 #endif
 
 #if USE_ROBOT
-            TerminateRobots();
+            TerminateRobots(); // 로봇 종료
 #endif
 
 #if USE_PLC
-            TerminatePlc();
+            TerminatePlc(); // PLC 종료
 #endif
 
             //Library.Terminate();
         }
     }
 }
+

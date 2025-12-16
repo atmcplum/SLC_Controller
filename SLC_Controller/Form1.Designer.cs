@@ -108,9 +108,9 @@
             this.lbMaxDelay.ForeColor = System.Drawing.Color.Red;
             this.lbMaxDelay.Location = new System.Drawing.Point(632, 42);
             this.lbMaxDelay.Name = "lbMaxDelay";
-            this.lbMaxDelay.Size = new System.Drawing.Size(90, 19);
+            this.lbMaxDelay.Size = new System.Drawing.Size(99, 19);
             this.lbMaxDelay.TabIndex = 22;
-            this.lbMaxDelay.Text = "MAX: 1250";
+            this.lbMaxDelay.Text = "MAX: Value";
             // 
             // label13
             // 
@@ -408,7 +408,7 @@
             "Continuous",
             "Switch",
             "PWM"});
-            this.cbMode1.Location = new System.Drawing.Point(33, 53);
+            this.cbMode1.Location = new System.Drawing.Point(33, 52);
             this.cbMode1.Name = "cbMode1";
             this.cbMode1.Size = new System.Drawing.Size(414, 22);
             this.cbMode1.TabIndex = 15;
@@ -427,7 +427,7 @@
             "Continuous",
             "Switch",
             "PWM"});
-            this.cbMode2.Location = new System.Drawing.Point(33, 95);
+            this.cbMode2.Location = new System.Drawing.Point(33, 94);
             this.cbMode2.Name = "cbMode2";
             this.cbMode2.Size = new System.Drawing.Size(414, 22);
             this.cbMode2.TabIndex = 15;
@@ -446,7 +446,7 @@
             "Continuous",
             "Switch",
             "PWM"});
-            this.cbMode3.Location = new System.Drawing.Point(33, 137);
+            this.cbMode3.Location = new System.Drawing.Point(33, 136);
             this.cbMode3.Name = "cbMode3";
             this.cbMode3.Size = new System.Drawing.Size(414, 22);
             this.cbMode3.TabIndex = 15;
@@ -465,7 +465,7 @@
             "Continuous",
             "Switch",
             "PWM"});
-            this.cbMode4.Location = new System.Drawing.Point(33, 179);
+            this.cbMode4.Location = new System.Drawing.Point(33, 178);
             this.cbMode4.Name = "cbMode4";
             this.cbMode4.Size = new System.Drawing.Size(414, 22);
             this.cbMode4.TabIndex = 15;
@@ -796,7 +796,7 @@
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.btnConnect);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "SLC_LightController";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
