@@ -30,8 +30,8 @@ namespace SLC_Controller {
 
         private class ChannelSettings {
             public int Ima { get; set; } // 전류 설정값
-            public int Wus { get; set; } // on 시간(us)
-            public int Dus { get; set; } // off 시간(us)
+            public int Wus { get; set; } // 온 시간(us)
+            public int Dus { get; set; } // 오프 시간(us)
         }
 
         private ComboBox[] modes => new[] { cbMode1, cbMode2, cbMode3, cbMode4 };
