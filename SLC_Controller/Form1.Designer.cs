@@ -67,9 +67,11 @@
             this.btnTrigger2 = new System.Windows.Forms.Button();
             this.btnTrigger4 = new System.Windows.Forms.Button();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.btnSetAll = new System.Windows.Forms.Button();
             this.btnTrigger3 = new System.Windows.Forms.Button();
             this.btnTest = new System.Windows.Forms.Button();
             this.btnConnect = new System.Windows.Forms.Button();
+            this.lbLog = new System.Windows.Forms.ListBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -685,6 +687,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 70F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.Controls.Add(this.btnSetAll, 5, 0);
             this.tableLayoutPanel1.Controls.Add(this.label13, 4, 0);
             this.tableLayoutPanel1.Controls.Add(this.label12, 3, 0);
             this.tableLayoutPanel1.Controls.Add(this.label11, 2, 0);
@@ -731,6 +734,22 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(938, 211);
             this.tableLayoutPanel1.TabIndex = 17;
             // 
+            // btnSetAll
+            // 
+            this.btnSetAll.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(55)))), ((int)(((byte)(66)))));
+            this.btnSetAll.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnSetAll.FlatAppearance.BorderSize = 0;
+            this.btnSetAll.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSetAll.Font = new System.Drawing.Font("Consolas", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSetAll.ForeColor = System.Drawing.Color.White;
+            this.btnSetAll.Location = new System.Drawing.Point(765, 3);
+            this.btnSetAll.Name = "btnSetAll";
+            this.btnSetAll.Size = new System.Drawing.Size(64, 36);
+            this.btnSetAll.TabIndex = 20;
+            this.btnSetAll.Text = "SET@";
+            this.btnSetAll.UseVisualStyleBackColor = false;
+            this.btnSetAll.Click += new System.EventHandler(this.btnSetAll_Click);
+            // 
             // btnTrigger3
             // 
             this.btnTrigger3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(55)))), ((int)(((byte)(66)))));
@@ -775,6 +794,15 @@
             this.btnConnect.UseVisualStyleBackColor = false;
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
+            // lbLog
+            // 
+            this.lbLog.FormattingEnabled = true;
+            this.lbLog.ItemHeight = 12;
+            this.lbLog.Location = new System.Drawing.Point(12, 298);
+            this.lbLog.Name = "lbLog";
+            this.lbLog.Size = new System.Drawing.Size(447, 88);
+            this.lbLog.TabIndex = 28;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -782,6 +810,7 @@
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(33)))), ((int)(((byte)(44)))));
             this.ClientSize = new System.Drawing.Size(963, 398);
+            this.Controls.Add(this.lbLog);
             this.Controls.Add(this.cbSimulationMode);
             this.Controls.Add(this.tbDelay);
             this.Controls.Add(this.lbMaxDelay);
@@ -853,6 +882,8 @@
         private System.Windows.Forms.Button btnTrigger3;
         private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnConnect;
+        private System.Windows.Forms.Button btnSetAll;
+        private System.Windows.Forms.ListBox lbLog;
     }
 }
 
