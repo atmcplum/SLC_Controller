@@ -23,6 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            this.components = new System.ComponentModel.Container();
             this.cbSimulationMode = new System.Windows.Forms.CheckBox();
             this.tbDelay = new System.Windows.Forms.TextBox();
             this.lbMaxDelay = new System.Windows.Forms.Label();
@@ -71,8 +72,13 @@
             this.btnTrigger3 = new System.Windows.Forms.Button();
             this.btnTest = new System.Windows.Forms.Button();
             this.btnConnect = new System.Windows.Forms.Button();
-            this.lbLog = new System.Windows.Forms.ListBox();
+            this.rtbLog = new System.Windows.Forms.RichTextBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.lblClock = new System.Windows.Forms.Label();
+            this.clockTimer = new System.Windows.Forms.Timer(this.components);
+            this.runTimer = new System.Windows.Forms.Timer(this.components);
             this.tableLayoutPanel1.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbSimulationMode
@@ -82,6 +88,7 @@
             this.cbSimulationMode.FlatAppearance.BorderSize = 0;
             this.cbSimulationMode.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cbSimulationMode.Font = new System.Drawing.Font("Consolas", 11.25F, System.Drawing.FontStyle.Bold);
+            this.cbSimulationMode.ForeColor = System.Drawing.SystemColors.ControlLight;
             this.cbSimulationMode.Location = new System.Drawing.Point(12, 44);
             this.cbSimulationMode.Name = "cbSimulationMode";
             this.cbSimulationMode.Size = new System.Drawing.Size(96, 27);
@@ -265,7 +272,7 @@
             this.btnSave.FlatAppearance.BorderSize = 0;
             this.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSave.Font = new System.Drawing.Font("Consolas", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.ForeColor = System.Drawing.Color.Black;
+            this.btnSave.ForeColor = System.Drawing.SystemColors.ControlLight;
             this.btnSave.Location = new System.Drawing.Point(832, 0);
             this.btnSave.Margin = new System.Windows.Forms.Padding(0);
             this.btnSave.Name = "btnSave";
@@ -407,10 +414,8 @@
             this.cbMode1.Items.AddRange(new object[] {
             "Off",
             "Pulse",
-            "Continuous",
-            "Switch",
-            "PWM"});
-            this.cbMode1.Location = new System.Drawing.Point(33, 52);
+            "Continuous"});
+            this.cbMode1.Location = new System.Drawing.Point(33, 53);
             this.cbMode1.Name = "cbMode1";
             this.cbMode1.Size = new System.Drawing.Size(414, 22);
             this.cbMode1.TabIndex = 15;
@@ -426,10 +431,8 @@
             this.cbMode2.Items.AddRange(new object[] {
             "Off",
             "Pulse",
-            "Continuous",
-            "Switch",
-            "PWM"});
-            this.cbMode2.Location = new System.Drawing.Point(33, 94);
+            "Continuous"});
+            this.cbMode2.Location = new System.Drawing.Point(33, 95);
             this.cbMode2.Name = "cbMode2";
             this.cbMode2.Size = new System.Drawing.Size(414, 22);
             this.cbMode2.TabIndex = 15;
@@ -445,10 +448,8 @@
             this.cbMode3.Items.AddRange(new object[] {
             "Off",
             "Pulse",
-            "Continuous",
-            "Switch",
-            "PWM"});
-            this.cbMode3.Location = new System.Drawing.Point(33, 136);
+            "Continuous"});
+            this.cbMode3.Location = new System.Drawing.Point(33, 137);
             this.cbMode3.Name = "cbMode3";
             this.cbMode3.Size = new System.Drawing.Size(414, 22);
             this.cbMode3.TabIndex = 15;
@@ -464,10 +465,8 @@
             this.cbMode4.Items.AddRange(new object[] {
             "Off",
             "Pulse",
-            "Continuous",
-            "Switch",
-            "PWM"});
-            this.cbMode4.Location = new System.Drawing.Point(33, 178);
+            "Continuous"});
+            this.cbMode4.Location = new System.Drawing.Point(33, 179);
             this.cbMode4.Name = "cbMode4";
             this.cbMode4.Size = new System.Drawing.Size(414, 22);
             this.cbMode4.TabIndex = 15;
@@ -772,6 +771,7 @@
             this.btnTest.FlatAppearance.BorderSize = 0;
             this.btnTest.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnTest.Font = new System.Drawing.Font("Consolas", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTest.ForeColor = System.Drawing.SystemColors.ControlLight;
             this.btnTest.Location = new System.Drawing.Point(827, 12);
             this.btnTest.Name = "btnTest";
             this.btnTest.Size = new System.Drawing.Size(123, 57);
@@ -786,6 +786,7 @@
             this.btnConnect.FlatAppearance.BorderSize = 0;
             this.btnConnect.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnConnect.Font = new System.Drawing.Font("Consolas", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnConnect.ForeColor = System.Drawing.SystemColors.ControlLight;
             this.btnConnect.Location = new System.Drawing.Point(12, 12);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(96, 27);
@@ -794,14 +795,49 @@
             this.btnConnect.UseVisualStyleBackColor = false;
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
-            // lbLog
+            // rtbLog
             // 
-            this.lbLog.FormattingEnabled = true;
-            this.lbLog.ItemHeight = 12;
-            this.lbLog.Location = new System.Drawing.Point(12, 298);
-            this.lbLog.Name = "lbLog";
-            this.lbLog.Size = new System.Drawing.Size(447, 88);
-            this.lbLog.TabIndex = 28;
+            this.rtbLog.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(44)))), ((int)(((byte)(55)))));
+            this.rtbLog.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.rtbLog.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rtbLog.ForeColor = System.Drawing.Color.White;
+            this.rtbLog.Location = new System.Drawing.Point(12, 298);
+            this.rtbLog.Name = "rtbLog";
+            this.rtbLog.ReadOnly = true;
+            this.rtbLog.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this.rtbLog.Size = new System.Drawing.Size(938, 88);
+            this.rtbLog.TabIndex = 28;
+            this.rtbLog.Text = "";
+            this.rtbLog.WordWrap = false;
+            // 
+            // panel1
+            // 
+            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(44)))), ((int)(((byte)(55)))));
+            this.panel1.Controls.Add(this.lblClock);
+            this.panel1.Location = new System.Drawing.Point(12, 392);
+            this.panel1.Margin = new System.Windows.Forms.Padding(0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(938, 25);
+            this.panel1.TabIndex = 29;
+            // 
+            // lblClock
+            // 
+            this.lblClock.Font = new System.Drawing.Font("Consolas", 9F);
+            this.lblClock.ForeColor = System.Drawing.Color.Aqua;
+            this.lblClock.Location = new System.Drawing.Point(787, 0);
+            this.lblClock.Name = "lblClock";
+            this.lblClock.Size = new System.Drawing.Size(151, 24);
+            this.lblClock.TabIndex = 0;
+            this.lblClock.Text = "label2";
+            this.lblClock.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // clockTimer
+            // 
+            this.clockTimer.Tick += new System.EventHandler(this.clockTimer_Tick);
+            // 
+            // runTimer
+            // 
+            this.runTimer.Tick += new System.EventHandler(this.runTimer_Tick);
             // 
             // Form1
             // 
@@ -809,8 +845,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(33)))), ((int)(((byte)(44)))));
-            this.ClientSize = new System.Drawing.Size(963, 398);
-            this.Controls.Add(this.lbLog);
+            this.ClientSize = new System.Drawing.Size(963, 426);
+            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.rtbLog);
             this.Controls.Add(this.cbSimulationMode);
             this.Controls.Add(this.tbDelay);
             this.Controls.Add(this.lbMaxDelay);
@@ -828,6 +865,7 @@
             this.Text = "SLC_LightController";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
+            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -883,7 +921,10 @@
         private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Button btnSetAll;
-        private System.Windows.Forms.ListBox lbLog;
+        private System.Windows.Forms.RichTextBox rtbLog;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label lblClock;
+        private System.Windows.Forms.Timer clockTimer;
+        private System.Windows.Forms.Timer runTimer;
     }
 }
-

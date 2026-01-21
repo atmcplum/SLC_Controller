@@ -17,4 +17,3 @@ namespace SLC_Controller {
         }
     }
 }
-
