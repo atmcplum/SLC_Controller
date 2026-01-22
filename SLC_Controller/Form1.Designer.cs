@@ -38,7 +38,7 @@
             this.label17 = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
             this.lbCh4 = new System.Windows.Forms.Label();
-            this.btnSave = new System.Windows.Forms.Button();
+            this.btnSetting = new System.Windows.Forms.Button();
             this.btnSet2 = new System.Windows.Forms.Button();
             this.btnSet3 = new System.Windows.Forms.Button();
             this.btnSet4 = new System.Windows.Forms.Button();
@@ -265,21 +265,21 @@
             this.lbCh4.Text = "4";
             this.lbCh4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // btnSave
+            // btnSetting
             // 
-            this.btnSave.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(55)))), ((int)(((byte)(66)))));
-            this.btnSave.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnSave.FlatAppearance.BorderSize = 0;
-            this.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSave.Font = new System.Drawing.Font("Consolas", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.btnSave.Location = new System.Drawing.Point(832, 0);
-            this.btnSave.Margin = new System.Windows.Forms.Padding(0);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(106, 42);
-            this.btnSave.TabIndex = 0;
-            this.btnSave.Text = "SAVE";
-            this.btnSave.UseVisualStyleBackColor = false;
+            this.btnSetting.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(55)))), ((int)(((byte)(66)))));
+            this.btnSetting.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnSetting.FlatAppearance.BorderSize = 0;
+            this.btnSetting.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSetting.Font = new System.Drawing.Font("Consolas", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSetting.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.btnSetting.Location = new System.Drawing.Point(832, 0);
+            this.btnSetting.Margin = new System.Windows.Forms.Padding(0);
+            this.btnSetting.Name = "btnSetting";
+            this.btnSetting.Size = new System.Drawing.Size(106, 42);
+            this.btnSetting.TabIndex = 0;
+            this.btnSetting.Text = "SETTING";
+            this.btnSetting.UseVisualStyleBackColor = false;
             // 
             // btnSet2
             // 
@@ -348,7 +348,7 @@
             "172.28.37.108",
             "172.28.37.109",
             "172.28.38.101"});
-            this.cbIP.Location = new System.Drawing.Point(586, 12);
+            this.cbIP.Location = new System.Drawing.Point(578, 12);
             this.cbIP.Name = "cbIP";
             this.cbIP.Size = new System.Drawing.Size(133, 26);
             this.cbIP.TabIndex = 26;
@@ -415,7 +415,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode1.Location = new System.Drawing.Point(33, 53);
+            this.cbMode1.Location = new System.Drawing.Point(33, 52);
             this.cbMode1.Name = "cbMode1";
             this.cbMode1.Size = new System.Drawing.Size(414, 22);
             this.cbMode1.TabIndex = 15;
@@ -432,7 +432,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode2.Location = new System.Drawing.Point(33, 95);
+            this.cbMode2.Location = new System.Drawing.Point(33, 94);
             this.cbMode2.Name = "cbMode2";
             this.cbMode2.Size = new System.Drawing.Size(414, 22);
             this.cbMode2.TabIndex = 15;
@@ -449,7 +449,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode3.Location = new System.Drawing.Point(33, 137);
+            this.cbMode3.Location = new System.Drawing.Point(33, 136);
             this.cbMode3.Name = "cbMode3";
             this.cbMode3.Size = new System.Drawing.Size(414, 22);
             this.cbMode3.TabIndex = 15;
@@ -466,7 +466,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode4.Location = new System.Drawing.Point(33, 179);
+            this.cbMode4.Location = new System.Drawing.Point(33, 178);
             this.cbMode4.Name = "cbMode4";
             this.cbMode4.Size = new System.Drawing.Size(414, 22);
             this.cbMode4.TabIndex = 15;
@@ -513,11 +513,11 @@
             this.label14.AutoSize = true;
             this.label14.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label14.ForeColor = System.Drawing.Color.Red;
-            this.label14.Location = new System.Drawing.Point(725, 18);
+            this.label14.Location = new System.Drawing.Point(716, 18);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(36, 19);
+            this.label14.Size = new System.Drawing.Size(45, 19);
             this.label14.TabIndex = 19;
-            this.label14.Text = "T= ";
+            this.label14.Text = "CT= ";
             // 
             // tbDus1
             // 
@@ -696,7 +696,7 @@
             this.tableLayoutPanel1.Controls.Add(this.lbCh2, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.lbCh3, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.lbCh4, 0, 4);
-            this.tableLayoutPanel1.Controls.Add(this.btnSave, 6, 0);
+            this.tableLayoutPanel1.Controls.Add(this.btnSetting, 6, 0);
             this.tableLayoutPanel1.Controls.Add(this.btnSet1, 5, 1);
             this.tableLayoutPanel1.Controls.Add(this.btnSet2, 5, 2);
             this.tableLayoutPanel1.Controls.Add(this.btnSet3, 5, 3);
@@ -745,7 +745,7 @@
             this.btnSetAll.Name = "btnSetAll";
             this.btnSetAll.Size = new System.Drawing.Size(64, 36);
             this.btnSetAll.TabIndex = 20;
-            this.btnSetAll.Text = "SET@";
+            this.btnSetAll.Text = "ALL";
             this.btnSetAll.UseVisualStyleBackColor = false;
             this.btnSetAll.Click += new System.EventHandler(this.btnSetAll_Click);
             // 
@@ -887,7 +887,7 @@
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label lbCh4;
-        private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnSetting;
         private System.Windows.Forms.Button btnSet2;
         private System.Windows.Forms.Button btnSet3;
         private System.Windows.Forms.Button btnSet4;

@@ -22,13 +22,16 @@ namespace SLC_Controller {
         private System.Timers.Timer testTimer;
         private Dictionary<int, ChannelSettings> channelSettings = new Dictionary<int, ChannelSettings>();
         public bool isTesting = false;
-        private bool isSimulationMode = false;
+        private bool isConnecting = false;
         private bool isConnected = false;
         private int crrChannel;
         const int MAX_Ima = 1000;
-        string crrLbIsCon;
+        const int MAX_DUS_US = 300000;
         bool runStatus = false;
         private bool lastConnected = false;
+        private readonly Dictionary<int, int> highlightVersions = new Dictionary<int, int>();
+        private readonly Dictionary<int, Color> highlightBaseColors = new Dictionary<int, Color>();
+        private readonly Dictionary<int, bool> continuousOn = new Dictionary<int, bool>();
 
         private class ChannelSettings {
             public int Ima { get; set; } // 전류 설정값
@@ -46,7 +49,7 @@ namespace SLC_Controller {
             cbIP.Visible = false;
 
             cbSimulationMode.CheckedChanged += (s, e) => {
-                isSimulationMode = cbSimulationMode.Checked;
+                cbSimulationMode.Checked = cbSimulationMode.Checked;
             };
 
             testTimer = new System.Timers.Timer();
@@ -57,26 +60,25 @@ namespace SLC_Controller {
             clockTimer.Start();
 
             lc.Name = "LC"; //lc.IP = "172.28.37.101"; // 장치 이름 설정
-            lc.SetTriggerMode(0);
-
-            SetModesTo(0); // 모든 채널 모드를 Off로 초기화
+            
         }
 
         // 3. UI 초기화 및 설정
         private void InitUI() {
             Log("Initializing UI...");
+            SetModesTo(0);
+            lc.SetTriggerMode(0);
             for (int i = 1; i <= 4; i++) {
-                //Log($"[UI] Hide inputs for Ch{i}");
                 foreach (var name in new[] { "tbIma", "tbDus", "tbWus" }) {
                     (Controls.Find(name + i, true).FirstOrDefault() as TextBox)?.Hide();
                 }
-                //Log($"[UI] Hide trigger button for Ch{i}");
                 (Controls.Find("btnTrigger" + i, true).FirstOrDefault() as Button)?.Hide();
             }
             Log("[InitUI] CycleTime/Delay Default Setting...");
             tbCycleTime.Text = "5000"; //총 사이클 시간 (초기값) // 기본 사이클 5초
             tbDelay.Text = "1250"; //채널별 할당되는 시간 (초기값) // 기본 딜레이 1.25초
             Log("[UI] Set defaults: CycleTime=5000, Delay=1250");
+            UpdateConnStatusLabel();
 
             Log("[InitUI] UI initialization completed.");
         }
@@ -93,8 +95,8 @@ namespace SLC_Controller {
         }
 
         private void SetModesTo(int n) {
-            foreach (var cb in modes) { 
-                cb.SelectedIndex = n; 
+            foreach (var cb in modes) {
+                cb.SelectedIndex = n;
             }
         }
 
@@ -103,13 +105,15 @@ namespace SLC_Controller {
 
             if (mode == "Pulse") {
                 imaVis = wusVis = dusVis = triggerVis = true;
+                btnTrigger.Text = "TRIG";
 
                 if (string.IsNullOrWhiteSpace(tbIma.Text)) tbIma.Text = "500"; // 기본 전류
                 if (string.IsNullOrWhiteSpace(tbWus.Text)) tbWus.Text = "400000"; // 기본 온 시간
                 if (string.IsNullOrWhiteSpace(tbDus.Text)) tbDus.Text = "0"; // 기본 오프 시간
             }
             else if (mode == "Continuous") {
-                imaVis = triggerVis = true; 
+                imaVis = triggerVis = true;
+                btnTrigger.Text = "ON";
 
                 if (string.IsNullOrWhiteSpace(tbIma.Text)) tbIma.Text = "500"; // 기본 전류
             }
@@ -125,7 +129,7 @@ namespace SLC_Controller {
                 if (!int.TryParse(tbCycleTime.Text, out int cycleTime))
                     return; // 숫자 아니면 종료
 
-                int maxDelay = cycleTime / 4; 
+                int maxDelay = cycleTime / 4;
                 lbMaxDelay.Text = "MAX: " + maxDelay.ToString();
 
                 if (int.TryParse(tbDelay.Text, out int delay)) { // 딜레이 입력 파싱
@@ -135,7 +139,6 @@ namespace SLC_Controller {
                 }
             }
             catch (Exception ex) {
-                //MessageBox.Show("Error occurred while validating delay value: " + ex.Message);
                 Log("Error occurred while validating delay value: " + ex.Message);
             }
         }
@@ -143,44 +146,59 @@ namespace SLC_Controller {
         // 4. 연결, 네트워크
         private void btnConnect_Click(object sender, EventArgs e) {
             Log("[NET] Connect start");
-            try {
-                lc.IP = "172.28.37.101"; //lc.IP = cbIP.SelectedItem?.ToString(); // 장치 IP 설정
-                if (string.IsNullOrEmpty(lc.IP)) { // IP 비어있는지 검사
-                    //MessageBox.Show("IP Address Not Found", "Alert");
-                    Log("[NET] IP Address not found");
-                    return; 
-                }
-                Log($"[NET] Target IP: {lc.IP}");
+            btnConnect.Enabled = false;
+            btnConnect.Text = "CONNECTING...";
+            isConnecting = true;
+            UpdateConnStatusLabel();
+            Task.Run(() => {
+                try {
+                    lc.IP = "172.28.37.101"; //lc.IP = cbIP.SelectedItem?.ToString(); // 장치 IP 설정
+                    if (string.IsNullOrEmpty(lc.IP)) { // IP 비어있는지 검사
+                        Log("[NET] IP Address not found");
+                        return;
+                    }
+                    Log($"[NET] Target IP: {lc.IP}");
 
-                var ok = lc.Connect();
+                    var ok = lc.Connect();
 
-                if (!ok) {
-                    lbIsConn.Text = "DISCONNECTED"; 
-                    lbIsConn.ForeColor = Color.Red;
-                    //MessageBox.Show("Connection failed", "Error");
-                    Log("[NET] Connection failed");
-                    isConnected = false;
-                    runTimer.Stop();
-                    ShowIP(); 
-                    return; 
+                    if (!ok) {
+                        Invoke((MethodInvoker)(() => {
+                            isConnected = false;
+                            isConnecting = false;
+                            lbIsConn.ForeColor = Color.Red;
+                            btnConnect.Text = "CONNECT";
+                            UpdateConnStatusLabel();
+                            runTimer.Stop();
+                        }));
+                        Log("[NET] Connection failed");
+                        ShowIP(); 
+                        return; 
+                    }
+                    else {
+                        Invoke((MethodInvoker)(() => {
+                            isConnected = true;
+                            isConnecting = false;
+                            lbIsConn.ForeColor = Color.Green;
+                            UpdateConnStatusLabel();
+                            runTimer.Interval = 500;
+                            runTimer.Stop();
+                            runTimer.Start();
+                        }));
+                        Log("[NET] Connected");
+                        ShowIP();
+                    }
                 }
-                else { 
-                    lbIsConn.Text = "CONNECTED"; 
-                    lbIsConn.ForeColor = Color.Green;
-                    //MessageBox.Show("Connected");
-                    Log("[NET] Connected");
-                    isConnected = true;
-                    // SLC 연결되면 runTimer 시작
-                    runTimer.Interval = 500;
-                    runTimer.Stop();
-                    runTimer.Start();
-                    ShowIP();
+                catch (Exception ex) {
+                    Log($"[ERR] Connect exception: {ex.Message}");
                 }
-            }
-            catch (Exception ex) {
-                //MessageBox.Show("An error occurred during connection:\n" + ex.Message, "Error");
-                Log($"[ERR] Connect exception: {ex.Message}");
-            }
+                finally {
+                    Invoke((MethodInvoker)(() => {
+                        isConnecting = false;
+                        UpdateConnStatusLabel();
+                        btnConnect.Enabled = true;
+                    }));
+                }
+            });
         }
 
         private void ShowIP() { // PC와 컨트롤러 IP 표시
@@ -201,7 +219,6 @@ namespace SLC_Controller {
                 localIP = "ERROR: " + ex.Message; // 실패 시 메시지
             }
 
-            //MessageBox.Show("Host IP Address: " + localIP + "\nController IP Address: " + lc.IP, "IP STATUS"); // 결과 표시
             Log($"[NET] Host IP: {localIP}");
             Log($"[NET] Controller IP: {lc.IP}");
         }
@@ -210,8 +227,7 @@ namespace SLC_Controller {
         private void btnTest_Click(object sender, EventArgs e) { // TEST 버튼 클릭
             if (!isTesting) { // 테스트 시작 분기
                 Log("[TEST] Start requested");
-                if (!isSimulationMode && !lc.Connected) { // 실장치 모드인데 미연결이면
-                    //MessageBox.Show("Not connected"); // 안내 후
+                if (!cbSimulationMode.Checked && !lc.Connected) { // 실장치 모드인데 미연결이면
                     Log("[TEST] Not connected");
                     return; // 종료
                 }
@@ -221,7 +237,6 @@ namespace SLC_Controller {
                     Log($"[TEST] Timer interval set to {cTime} ms");
                 }
                 else {
-                    //MessageBox.Show("Invalid cycle time");
                     Log("[TEST] Invalid cycle time");
                     return; // 종료
                 }
@@ -265,29 +280,33 @@ namespace SLC_Controller {
                         if (!channelSettings.TryGetValue(ch, out var setting)) // 설정 없으면
                             continue; // 건너뜀
 
-                        if (!isSimulationMode && !lc.Connected) // 실장치 모드인데 미연결이면
+                        if (!cbSimulationMode.Checked && !lc.Connected) // 실장치 모드인데 미연결이면
                             continue; // 실행하지 않음
 
                         Log($"[CH] Ch{ch} -> {mode}");
 
                         if (mode == "Pulse") { // 펄스 모드
-                            if (!isSimulationMode) { // 실장치면
+                            if (!cbSimulationMode.Checked) { // 실장치면
                                 lc.SetPulseOutput(ch, setting.Ima, setting.Wus, setting.Dus); // 파라미터 설정
                                 lc.Trigger(ch); // 트리거 명령
                             }
 
+                            int dusMs = Math.Max(0, setting.Dus / 1000); // 딜레이 시간 계산
+                            if (dusMs > 0) {
+                                await Task.Delay(dusMs); // 딜레이 대기
+                            }
                             int durationMs = Math.Max(1, setting.Wus / 1000); // LED 표시 시간 계산
                             _ = HighlightChannel(ch, Color.Lime, durationMs); // 채널 라벨 하이라이트
                             await Task.Delay(delay); // 다음 채널 전 대기
                         }
                         else if (mode == "Continuous") { // 연속 모드
-                            if (!isSimulationMode)
+                            if (!cbSimulationMode.Checked)
                                 lc.SetContinousOutput(ch, setting.Ima); // 지속 출력 설정
 
                             _ = HighlightChannel(ch, Color.Lime, delay); // 라벨 하이라이트
                             await Task.Delay(delay); // 지정 딜레이 만큼 대기
 
-                            if (!isSimulationMode)
+                            if (!cbSimulationMode.Checked)
                                 SetOffMode(ch);
                         }
                     }
@@ -299,10 +318,9 @@ namespace SLC_Controller {
         }
 
         // 6. 채널 트리거
-        private void btnTrigger_Click(object sender, EventArgs e) { // 개별 채널 트리거 버튼
+        private async void btnTrigger_Click(object sender, EventArgs e) { // 개별 채널 트리거 버튼
             //TestCapture(0); // 캡처 테스트 (비활성)
-            if (!isSimulationMode && !lc.Connected) { // 실장치 모드에서 미연결이면
-                //MessageBox.Show("Not connected");
+            if (!cbSimulationMode.Checked && !lc.Connected) { // 실장치 모드에서 미연결이면
                 Log("[CH] Not connected");
                 return; // 중단
             }
@@ -311,7 +329,6 @@ namespace SLC_Controller {
                 int index = int.Parse(btn.Name.Substring("btnTrigger".Length)); // 버튼 이름에서 채널 번호 추출
 
                 if (!channelSettings.ContainsKey(index)) { // 설정 존재 여부
-                    //MessageBox.Show($"Channel {index} has no setting value. Please press 'Set' button."); // 설정 요청
                     Log($"[CH] Ch{index} has no setting value. Please press 'Set' button.");
                     return; // 중단
                 }
@@ -324,27 +341,43 @@ namespace SLC_Controller {
                 if (mode == "Pulse") { // 펄스 모드
                     Log($"[CH] Ch{index} Pulse: Ima={setting.Ima}, Wus={setting.Wus}, Dus={setting.Dus}");
 
-                    if (!isSimulationMode) {
+                    if (!cbSimulationMode.Checked) {
                         lc.SetPulseOutput(index, setting.Ima, setting.Wus, setting.Dus); // 장치에 값 설정
                         lc.Trigger(index); // 트리거 실행
                     }
 
+                    int dusMs = Math.Max(0, setting.Dus / 1000); // 딜레이 시간 계산
+                    if (dusMs > 0) {
+                        await Task.Delay(dusMs); // 딜레이 대기
+                    }
                     int duration = Math.Max(1, setting.Wus / 1000); // 표시 시간 계산
                     _ = HighlightChannel(index, Color.Orange, duration); // 라벨 강조
                 }
                 else if (mode == "Continuous") { // 연속 모드
                     Log($"[CH] Ch{index} Continuous: Ima={setting.Ima}");
 
-                    if (!isSimulationMode)
+                    bool isOn = continuousOn.TryGetValue(index, out bool currentOn) && currentOn;
+                    bool nextOn = !isOn;
+                    continuousOn[index] = nextOn;
+
+                if (!cbSimulationMode.Checked) {
+                    if (nextOn) {
                         lc.SetContinousOutput(index, setting.Ima); // 연속 출력 설정
-
-                    _ = HighlightChannel(index, Color.Orange, 1000); // 1초간 강조
-
-                    if (!isSimulationMode)
+                    }
+                    else {
                         SetOffMode(index); // 출력 종료
+                    }
+                    }
+
+                    if (nextOn) {
+                        SetChannelLabelColor(index, Color.Orange); // ON 상태 표시
+                    }
+                    else {
+                        RestoreChannelLabelColor(index); // OFF 상태 복구
+                    }
+                    btn.Text = nextOn ? "OFF" : "ON";
                 }
                 else {
-                    //MessageBox.Show($"Channel {index} mode is Null or Off."); // 모드가 설정되지 않음
                     Log($"[CH] Ch{index} mode is Null or Off.");
                 }
             }
@@ -354,13 +387,92 @@ namespace SLC_Controller {
             lc.SetPulseOutput(ch, 1, 1, 0); // 미미한 펄스로 꺼짐 처리
         }
 
-        private async Task HighlightChannel(int ch, Color color, int durationMs) { // 채널 라벨 임시 색상 변경
-            Label lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
-            if (lb != null) {
-                Color original = lb.BackColor; // 기존 색상 저장
+        private async Task HighlightChannel(int ch, Color color, int durationMs) {
+            if (!highlightVersions.ContainsKey(ch)) {
+                highlightVersions[ch] = 0;
+            }
+            int token = ++highlightVersions[ch];
+
+            Label lb = null;
+            Color baseColor = default;
+            // UI 스레드에서만 라벨 접근/색 변경
+            if (InvokeRequired) {
+                Invoke((MethodInvoker)(() => {
+                    lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
+                    if (lb == null) {
+                        return;
+                    }
+                    // 최초 1회만 기본색 저장(연속 하이라이트 시 원래색 유지)
+                    if (!highlightBaseColors.ContainsKey(ch)) {
+                        highlightBaseColors[ch] = lb.BackColor; // 최초 색상 저장
+                    }
+                    baseColor = highlightBaseColors[ch];
+                    lb.BackColor = color; // 새 색상 적용
+                }));
+            }
+            else {
+                // 이미 UI 스레드면 바로 처리
+                lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
+                if (lb == null) {
+                    return;
+                }
+                // 최초 1회만 기본색 저장
+                if (!highlightBaseColors.ContainsKey(ch)) {
+                    highlightBaseColors[ch] = lb.BackColor; // 최초 색상 저장
+                }
+                baseColor = highlightBaseColors[ch];
                 lb.BackColor = color; // 새 색상 적용
-                await Task.Delay(durationMs);  // duration in ms // 지정 시간 대기
-                lb.BackColor = original; // 색상 복구
+            }
+
+            // 라벨을 못 찾았으면 종료
+            if (lb == null) {
+                return;
+            }
+
+            // 지정 시간만큼 하이라이트 유지
+            await Task.Delay(durationMs);  // duration in ms // 지정 시간 대기
+            // 최신 호출만 복원 (중간 호출은 무시)
+            if (highlightVersions[ch] == token) {
+                if (InvokeRequired) {
+                    BeginInvoke((MethodInvoker)(() => lb.BackColor = baseColor)); // 기본색 복구
+                }
+                else {
+                    lb.BackColor = baseColor; // 기본색 복구
+                }
+            }
+        }
+
+        private void SetChannelLabelColor(int ch, Color color) {
+            void Apply() {
+                Label lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
+                if (lb == null) return;
+                if (!highlightBaseColors.ContainsKey(ch)) {
+                    highlightBaseColors[ch] = lb.BackColor; // 최초 색상 저장
+                }
+                lb.BackColor = color;
+            }
+
+            if (InvokeRequired) {
+                Invoke((MethodInvoker)Apply);
+            }
+            else {
+                Apply();
+            }
+        }
+
+        private void RestoreChannelLabelColor(int ch) {
+            void Apply() {
+                if (!highlightBaseColors.TryGetValue(ch, out var baseColor)) return;
+                Label lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
+                if (lb == null) return;
+                lb.BackColor = baseColor;
+            }
+
+            if (InvokeRequired) {
+                Invoke((MethodInvoker)Apply);
+            }
+            else {
+                Apply();
             }
         }
 
@@ -378,13 +490,11 @@ namespace SLC_Controller {
                     TextBox tbDus = Controls.Find($"tbDus{ch}", true).FirstOrDefault() as TextBox; // 오프 시간 입력
 
                     if (!int.TryParse(tbIma?.Text, out int ima)) { // 전류 값 검증
-                        //MessageBox.Show($"Channel {ch}: Ima value is invalid."); // 잘못된 값 안내
                         Log($"[CH] Set failed: Ch{ch} Ima is invalid");
                         return;
                     }
 
                     if (ima > MAX_Ima) { // 최대 전류 초과 시
-                        //MessageBox.Show($"Ima value cannot exceed {MAX_Ima}."); // 경고
                         Log($"[CH] Set failed: Ch{ch} Ima exceeds MAX ({MAX_Ima})");
                         tbIma.Text = MAX_Ima.ToString(); // 최대값으로 보정
                         return;
@@ -392,28 +502,28 @@ namespace SLC_Controller {
 
                     if (mode == "Continuous") { // 연속 모드 저장
                         channelSettings[ch] = new ChannelSettings { Ima = ima, Wus = 0, Dus = 0 }; // 설정 딕셔너리에 저장
-                        //MessageBox.Show($"Channel {ch} (Continuous mode) setting saved"); // 저장 완료 안내
                         Log($"[CH] Set saved: Ch{ch} Continuous (Ima={ima})");
                     }
                     else if (mode == "Pulse") { // 펄스 모드 저장
                         if (!int.TryParse(tbWus?.Text, out int wus) || !int.TryParse(tbDus?.Text, out int dus)) { // 온/오프 검증
-                            //MessageBox.Show($"Channel {ch}: Wus or Dus value is invalid."); // 잘못된 값 안내
                             Log($"[CH] Set failed: Ch{ch} Wus/Dus is invalid");
                             return;
                         }
+                        if (dus > MAX_DUS_US) {
+                            Log($"[CH] Set adjust: Ch{ch} Dus exceeds MAX ({MAX_DUS_US})");
+                            dus = MAX_DUS_US;
+                            tbDus.Text = dus.ToString();
+                        }
 
                         channelSettings[ch] = new ChannelSettings { Ima = ima, Wus = wus, Dus = dus }; // 설정 저장
-                        //MessageBox.Show($"Channel {ch} (Pulse mode) setting saved"); // 저장 알림
                         Log($"[CH] Set saved: Ch{ch} Pulse (Ima={ima}, Wus={wus}, Dus={dus})");
                     }
                     else { // 모드가 Off 또는 미설정
-                        //MessageBox.Show($"Channel {ch} mode cannot be set. Current mode: {mode}"); // 설정 불가 안내
                         Log($"[CH] Set skipped: Ch{ch} mode cannot be set (Mode={mode})");
                     }
                 }
             }
             catch (Exception ex) {
-                //MessageBox.Show($"Error occurred during setting: {ex.Message}"); // 예외 처리
                 Log($"[ERR] Set exception: {ex.Message}");
             }
         }
@@ -434,7 +544,6 @@ namespace SLC_Controller {
                         }
 
                         if (ima > MAX_Ima) { // 최대 전류 초과 시
-                            //MessageBox.Show($"Ima value cannot exceed {MAX_Ima}."); // 경고
                             Log($"[CH] SetAll failed: Ch{ch} Ima exceeds MAX ({MAX_Ima})");
                             tbIma.Text = MAX_Ima.ToString(); // 최대값으로 보정
                             return;
@@ -446,42 +555,43 @@ namespace SLC_Controller {
                         }
                         else if (mode == "Pulse") { // 펄스 모드 저장
                             if (!int.TryParse(tbWus?.Text, out int wus) || !int.TryParse(tbDus?.Text, out int dus)) { // 온/오프 검증
-                                //MessageBox.Show($"Channel {ch}: Wus or Dus value is invalid."); // 잘못된 값 안내
                                 Log($"[CH] SetAll failed: Ch{ch} Wus/Dus is invalid");
                                 return;
+                            }
+                            if (dus > MAX_DUS_US) {
+                                Log($"[CH] SetAll adjust: Ch{ch} Dus exceeds MAX ({MAX_DUS_US})");
+                                dus = MAX_DUS_US;
+                                tbDus.Text = dus.ToString();
                             }
 
                             channelSettings[ch] = new ChannelSettings { Ima = ima, Wus = wus, Dus = dus }; // 설정 저장
                             Log($"[CH] SetAll saved: Ch{ch} Pulse (Ima={ima}, Wus={wus}, Dus={dus})");
                         }
                         else { // 모드가 Off 또는 미설정
-                            //MessageBox.Show($"Channel {ch} mode cannot be set. Current mode: {mode}"); // 설정 불가 안내
                             Log($"[CH] SetAll skip: Ch{ch} mode cannot be set (Mode={mode})");
                         }
                     }
                 }
             }
             catch (Exception ex) {
-                //MessageBox.Show($"Error occurred during setting: {ex.Message}"); // 예외 처리
                 Log($"[ERR] SetAll exception: {ex.Message}");
             }
-            //MessageBox.Show($"All Channels setting saved");
             Log("[CH] SetAll done");
         }
 
         // 8. UI 이벤트 핸들러
         private void cbSimulationMode_CheckedChanged(object sender, EventArgs e) { // 시뮬레이션 모드
-            if (isSimulationMode) {
+            if (!cbSimulationMode.Checked) {
                 btnConnect.Enabled = true;
-                lbIsConn.Text = crrLbIsCon;
                 this.BackColor = Color.FromArgb(0, 33, 44);
-                Log("[SIM] Simulation mode: OFF");                
+                UpdateConnStatusLabel();
+                Log("[SIM] Simulation mode: OFF");
             }
             else {
                 btnConnect.Enabled = false;
-                crrLbIsCon = lbIsConn.Text;
                 lbIsConn.Text = "SIMULATION MODE";
                 this.BackColor = Color.FromArgb(133, 44, 0);
+                UpdateConnStatusLabel();
                 Log("[SIM] Simulation mode: ON");
             }
         }
@@ -496,7 +606,6 @@ namespace SLC_Controller {
                     var btnTrig = Controls.Find($"btnTrigger{ch}", true).FirstOrDefault() as Button; // 트리거 버튼
 
                     if (tbIma != null && tbWus != null && tbDus != null && btnTrig != null) { // 컨트롤 유효성 확인
-                        //Log($"[CH] Apply mode setting: Ch{ch}");
                         ModeSetting(cb.Text, tbIma, tbWus, tbDus, btnTrig);
                     }
                     else {
@@ -543,22 +652,40 @@ namespace SLC_Controller {
             return modes[ch - 1]?.Text ?? "Off";
         }
 
+
+        private void UpdateConnStatusLabel() {
+            if (cbSimulationMode.Checked) {
+                lbIsConn.Text = "SIMULATION MODE";
+                return;
+            }
+
+            if (isConnecting) {
+                lbIsConn.Text = "CONNECTING...";
+                return;
+            }
+
+            lbIsConn.Text = isConnected ? "" : "DISCONNECTED";
+        }
+
         private void clockTimer_Tick(object sender, EventArgs e) {
             lblClock.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
         private void runTimer_Tick(object sender, EventArgs e) {
-            if (!isConnected) {
-                return;
-            }
             if (runStatus) {
                 btnConnect.BackColor = Color.FromArgb(0, 33, 44);
                 runStatus = false;
             }
             else {
                 btnConnect.BackColor = Color.Lime;
+                btnConnect.Text = "CONNECTED";
                 runStatus = true;
             }
+        }
+        private void UI(Action action) {
+            if (IsDisposed || Disposing) return;
+            if (InvokeRequired) Invoke(action);
+            else action();
         }
     }
 }
