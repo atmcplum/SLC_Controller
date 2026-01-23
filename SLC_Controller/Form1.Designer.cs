@@ -415,7 +415,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode1.Location = new System.Drawing.Point(33, 52);
+            this.cbMode1.Location = new System.Drawing.Point(33, 53);
             this.cbMode1.Name = "cbMode1";
             this.cbMode1.Size = new System.Drawing.Size(414, 22);
             this.cbMode1.TabIndex = 15;
@@ -432,7 +432,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode2.Location = new System.Drawing.Point(33, 94);
+            this.cbMode2.Location = new System.Drawing.Point(33, 95);
             this.cbMode2.Name = "cbMode2";
             this.cbMode2.Size = new System.Drawing.Size(414, 22);
             this.cbMode2.TabIndex = 15;
@@ -449,7 +449,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode3.Location = new System.Drawing.Point(33, 136);
+            this.cbMode3.Location = new System.Drawing.Point(33, 137);
             this.cbMode3.Name = "cbMode3";
             this.cbMode3.Size = new System.Drawing.Size(414, 22);
             this.cbMode3.TabIndex = 15;
@@ -466,7 +466,7 @@
             "Off",
             "Pulse",
             "Continuous"});
-            this.cbMode4.Location = new System.Drawing.Point(33, 178);
+            this.cbMode4.Location = new System.Drawing.Point(33, 179);
             this.cbMode4.Name = "cbMode4";
             this.cbMode4.Size = new System.Drawing.Size(414, 22);
             this.cbMode4.TabIndex = 15;

@@ -1,15 +1,10 @@
 ﻿using Abeo.HW;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
@@ -20,18 +15,18 @@ namespace SLC_Controller {
         // 1. 필드 및 속성
         private AbeoLightCon lc = new AbeoLightCon();
         private System.Timers.Timer testTimer;
-        private Dictionary<int, ChannelSettings> channelSettings = new Dictionary<int, ChannelSettings>();
-        public bool isTesting = false;
-        private bool isConnecting = false;
-        private bool isConnected = false;
-        private int crrChannel;
-        const int MAX_Ima = 1000;
-        const int MAX_DUS_US = 300000;
-        bool runStatus = false;
-        private bool lastConnected = false;
+        private readonly Dictionary<int, ChannelSettings> channelSettings = new Dictionary<int, ChannelSettings>();
         private readonly Dictionary<int, int> highlightVersions = new Dictionary<int, int>();
         private readonly Dictionary<int, Color> highlightBaseColors = new Dictionary<int, Color>();
         private readonly Dictionary<int, bool> continuousOn = new Dictionary<int, bool>();
+        private bool isTesting = false;
+        private bool isConnecting = false;
+        private bool isConnected = false;
+        private bool runStatus = false;
+        private int crrChannel;
+
+        const int MAX_Ima = 1000;
+        const int MAX_DUS_US = 300000;
 
         private class ChannelSettings {
             public int Ima { get; set; } // 전류 설정값
@@ -47,10 +42,6 @@ namespace SLC_Controller {
             InitUI();
             cbIP.SelectedIndex = 1;
             cbIP.Visible = false;
-
-            cbSimulationMode.CheckedChanged += (s, e) => {
-                cbSimulationMode.Checked = cbSimulationMode.Checked;
-            };
 
             testTimer = new System.Timers.Timer();
             testTimer.Elapsed += TestTimer_Elapsed;
@@ -431,6 +422,7 @@ namespace SLC_Controller {
 
             // 지정 시간만큼 하이라이트 유지
             await Task.Delay(durationMs);  // duration in ms // 지정 시간 대기
+
             // 최신 호출만 복원 (중간 호출은 무시)
             if (highlightVersions[ch] == token) {
                 if (InvokeRequired) {
@@ -651,7 +643,6 @@ namespace SLC_Controller {
             if (ch < 1 || ch > 4) return "Off";
             return modes[ch - 1]?.Text ?? "Off";
         }
-
 
         private void UpdateConnStatusLabel() {
             if (cbSimulationMode.Checked) {
