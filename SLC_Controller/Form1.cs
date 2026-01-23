@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
@@ -22,11 +24,17 @@ namespace SLC_Controller {
         private bool isTesting = false;
         private bool isConnecting = false;
         private bool isConnected = false;
+        private bool pingEnabled = false;
         private bool runStatus = false;
         private int crrChannel;
+        private long lastPingTick = 0;
+        private int pingInFlight = 0;
+        private int pingFailCount = 0;
 
         const int MAX_Ima = 1000;
         const int MAX_DUS_US = 300000;
+        const int PING_INTERVAL_MS = 2000;
+        const int PING_TIMEOUT_MS = 300;
 
         private class ChannelSettings {
             public int Ima { get; set; } // 전류 설정값
@@ -50,8 +58,7 @@ namespace SLC_Controller {
             clockTimer.Interval = 500;
             clockTimer.Start();
 
-            lc.Name = "LC"; //lc.IP = "172.28.37.101"; // 장치 이름 설정
-            
+            lc.Name = "LC"; //lc.IP = "172.28.37.101"; // 장치 이름 설정            
         }
 
         // 3. UI 초기화 및 설정
@@ -74,24 +81,24 @@ namespace SLC_Controller {
             Log("[InitUI] UI initialization completed.");
         }
 
-        private void SetControlsEnabled(bool enabled) {
+        private void SetControlsEnabled(bool enabled) { // 컨트롤 활성화/비활성화
             tbCycleTime.Enabled = enabled;
             tbDelay.Enabled = enabled;
             btnConnect.Enabled = enabled;
         }
 
-        private void SetTbState(TextBox tb, bool visible) {
+        private void SetTbState(TextBox tb, bool visible) { // 텍스트박스 상태 설정 visible: 표시 여부
             tb.Visible = visible;
             tb.Enabled = visible;
         }
 
-        private void SetModesTo(int n) {
+        private void SetModesTo(int n) { // 모든 채널 모드 설정
             foreach (var cb in modes) {
                 cb.SelectedIndex = n;
             }
         }
 
-        private void ModeSetting(string mode, TextBox tbIma, TextBox tbWus, TextBox tbDus, Button btnTrigger) {
+        private void ModeSetting(string mode, TextBox tbIma, TextBox tbWus, TextBox tbDus, Button btnTrigger) { // 모드에 따른 UI 설정
             bool imaVis = false, wusVis = false, dusVis = false, triggerVis = false;
 
             if (mode == "Pulse") {
@@ -138,6 +145,7 @@ namespace SLC_Controller {
         private void btnConnect_Click(object sender, EventArgs e) {
             Log("[NET] Connect start");
             btnConnect.Enabled = false;
+            btnConnect.BackColor = Color.FromArgb(0, 33, 44);
             btnConnect.Text = "CONNECTING...";
             isConnecting = true;
             UpdateConnStatusLabel();
@@ -155,9 +163,12 @@ namespace SLC_Controller {
                     if (!ok) {
                         Invoke((MethodInvoker)(() => {
                             isConnected = false;
+                            pingEnabled = false;
+                            pingFailCount = 0;
                             isConnecting = false;
                             lbIsConn.ForeColor = Color.Red;
                             btnConnect.Text = "CONNECT";
+                            btnConnect.BackColor = Color.FromArgb(0, 33, 44);
                             UpdateConnStatusLabel();
                             runTimer.Stop();
                         }));
@@ -168,6 +179,8 @@ namespace SLC_Controller {
                     else {
                         Invoke((MethodInvoker)(() => {
                             isConnected = true;
+                            pingEnabled = true;
+                            pingFailCount = 0;
                             isConnecting = false;
                             lbIsConn.ForeColor = Color.Green;
                             UpdateConnStatusLabel();
@@ -243,15 +256,7 @@ namespace SLC_Controller {
             }
             else { // 테스트 종료 분기
                 Log("[TEST] Stop requested");
-
-                isTesting = false; // 플래그 해제
-                SetControlsEnabled(true); // 입력 활성화
-                btnTest.Text = "TEST"; // 버튼 텍스트 복원
-                testTimer.Stop(); // 타이머 정지
-                SetModesTo(0); // 모드 선택 초기화
-                channelSettings.Clear(); // 채널 설정 초기화
-
-                Log("[TEST] Stopped (modes reset, settings cleared)");
+                StopTest("manual");
             }
         }
 
@@ -259,9 +264,24 @@ namespace SLC_Controller {
             TrigChannels(); // 채널 순차 실행
         }
 
+        private void StopTest(string reason) { // 테스트 종료 공통 처리
+            if (!isTesting) return;
+            Log($"[TEST] Stopped ({reason})");
+            isTesting = false; // 플래그 해제
+            SetControlsEnabled(true); // 입력 활성화
+            btnTest.Text = "TEST"; // 버튼 텍스트 복원
+            testTimer.Stop(); // 타이머 정지
+            SetModesTo(0); // 모드 선택 초기화
+            channelSettings.Clear(); // 채널 설정 초기화
+        }
+
         private void TrigChannels() { // 4개 채널을 순회하며 트리거
             Invoke((MethodInvoker)(async () => { // UI 스레드에서 실행
                 try {
+                    if (!cbSimulationMode.Checked && !isConnected) { // 연결 해제 시 테스트 중단
+                        StopTest("disconnected");
+                        return;
+                    }
                     if (!int.TryParse(tbDelay.Text, out int delay)) // 딜레이 파싱
                         delay = 1000; // 실패 시 기본값
 
@@ -378,7 +398,7 @@ namespace SLC_Controller {
             lc.SetPulseOutput(ch, 1, 1, 0); // 미미한 펄스로 꺼짐 처리
         }
 
-        private async Task HighlightChannel(int ch, Color color, int durationMs) {
+        private async Task HighlightChannel(int ch, Color color, int durationMs) { // 채널 라벨 하이라이트
             if (!highlightVersions.ContainsKey(ch)) {
                 highlightVersions[ch] = 0;
             }
@@ -434,7 +454,7 @@ namespace SLC_Controller {
             }
         }
 
-        private void SetChannelLabelColor(int ch, Color color) {
+        private void SetChannelLabelColor(int ch, Color color) { // 채널 라벨 색상 설정
             void Apply() {
                 Label lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
                 if (lb == null) return;
@@ -452,7 +472,7 @@ namespace SLC_Controller {
             }
         }
 
-        private void RestoreChannelLabelColor(int ch) {
+        private void RestoreChannelLabelColor(int ch) { // 채널 라벨 색상 복원
             void Apply() {
                 if (!highlightBaseColors.TryGetValue(ch, out var baseColor)) return;
                 Label lb = Controls.Find("lbCh" + ch, true).FirstOrDefault() as Label; // 라벨 찾기
@@ -519,7 +539,7 @@ namespace SLC_Controller {
                 Log($"[ERR] Set exception: {ex.Message}");
             }
         }
-        private void btnSetAll_Click(object sender, EventArgs e) {
+        private void btnSetAll_Click(object sender, EventArgs e) { // Set All 버튼 클릭
             try {
                 if (sender is Button btn) { // 버튼 확인
                     Log("[CH] SetAll requested");
@@ -660,6 +680,57 @@ namespace SLC_Controller {
 
         private void clockTimer_Tick(object sender, EventArgs e) {
             lblClock.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            TryPingLog();
+        }
+
+        private void TryPingLog() {
+            if (cbSimulationMode.Checked) return;
+            if (string.IsNullOrWhiteSpace(lc.IP)) return;
+            if (!pingEnabled) return;
+            if (isConnecting) return;
+
+            long nowTick = Environment.TickCount;
+            if (nowTick - lastPingTick < PING_INTERVAL_MS) return;
+            if (Interlocked.Exchange(ref pingInFlight, 1) != 0) return;
+
+            lastPingTick = nowTick;
+            _ = Task.Run(() => {
+                bool ok = false;
+                long rtt = -1;
+                try {
+                    using (var ping = new Ping()) {
+                        var reply = ping.Send(lc.IP, PING_TIMEOUT_MS);
+                        if (reply != null && reply.Status == IPStatus.Success) {
+                            ok = true;
+                            rtt = reply.RoundtripTime;
+                        }
+                    }
+                }
+                catch {
+                    ok = false;
+                }
+
+                //Log($"[PING] {lc.IP} {(ok ? "OK" : "FAIL")}, rtt={rtt}ms");
+                if (ok) {
+                    Interlocked.Exchange(ref pingFailCount, 0);
+                }
+                else {
+                    int fails = Interlocked.Increment(ref pingFailCount);
+                    if (fails >= 3) {
+                        UI(() => {
+                            if (!isConnected) return;
+                            isConnected = false;
+                            pingEnabled = false;
+                            lbIsConn.ForeColor = Color.Red;
+                            UpdateConnStatusLabel();
+                            runTimer.Stop();
+                            btnConnect.Text = "CONNECT";
+                            btnConnect.BackColor = Color.FromArgb(0, 33, 44);
+                            StopTest("disconnected");
+                        });
+                    }
+                }
+            }).ContinueWith(_ => Interlocked.Exchange(ref pingInFlight, 0));
         }
 
         private void runTimer_Tick(object sender, EventArgs e) {
