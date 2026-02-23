@@ -24,6 +24,7 @@
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.cbSimulationMode = new System.Windows.Forms.CheckBox();
             this.tbDelay = new System.Windows.Forms.TextBox();
             this.lbMaxDelay = new System.Windows.Forms.Label();
@@ -861,6 +862,7 @@
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.btnConnect);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "SLC_LightController";
             this.tableLayoutPanel1.ResumeLayout(false);

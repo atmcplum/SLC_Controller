@@ -7,7 +7,7 @@
     <ProjectGuid>{E76F19C7-5275-4CD7-9613-E26C0C4BD325}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>SLC_Controller</RootNamespace>
-    <AssemblyName>SLC_Controller</AssemblyName>
+    <AssemblyName>App.SLC_LightController</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -51,6 +51,9 @@
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>ATMCApp.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LotusAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
@@ -135,6 +138,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ATMCApp.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
