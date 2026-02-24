@@ -35,14 +35,14 @@ namespace SLC_Controller {
         const int MAX_DUS_US = 300000;
         const int PING_INTERVAL_MS = 2000;
         const int PING_TIMEOUT_MS = 300;
-
-        private class ChannelSettings {
-            public int Ima { get; set; } // 전류 설정값
-            public int Wus { get; set; } // 온 시간(us)
-            public int Dus { get; set; } // 오프 시간(us)
-        }
-
         private ComboBox[] modes => new[] { cbMode1, cbMode2, cbMode3, cbMode4 };
+
+        //private class ChannelSettings {
+        //    public int Ima { get; set; } // 전류 설정값
+        //    public int Wus { get; set; } // 온 시간(us)
+        //    public int Dus { get; set; } // 오프 시간(us)
+        //}
+
 
         // 2. 생성자
         public Form1() {
