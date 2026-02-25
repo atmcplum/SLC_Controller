@@ -64,7 +64,9 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppConstants.cs" />
     <Compile Include="ChannelSettings.cs" />
+    <Compile Include="ConnectionService.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
